@@ -1,17 +1,29 @@
 version: "3.9"
+
 services:
-  app:
+  fastapi:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fastapi-app
+    container_name: fastapi_app
+    expose:
+      - "8000"          # Expose port 8000 to other containers in the network (not to the host)
+    networks:
+      - app-network
+
   nginx:
-    image: nginx:latest
-    container_name: nginx-proxy
+    image: nginx:alpine
+    container_name: nginx_server
     ports:
-      - "80:80"
+      - "80:80"         # Map container port 80 to host port 80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - app
+      - fastapi         # Ensure FastAPI starts before Nginx
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
